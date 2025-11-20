@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vellichor.im | The Dust of Data</title>
+    <meta name="description" content="Vellichor: An interactive atmospheric simulation capturing the wistfulness of old data and digital entropy.">
+    
+    <!-- Fonts: Cinzel (Monumental) & Cormorant (Literary) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Palette: Old Bookshop */
+            --bg-color: #0f0b08;
+            --bg-gradient: radial-gradient(circle at center, #1a1410 0%, #050302 100%);
+            --text-color: #8a7e68;
+            --accent-color: #d4af37; /* Antique Gold */
+            --highlight-color: #ffeebb; /* Sunbeam */
+            
+            --font-title: 'Cinzel', serif;
+            --font-body: 'Cormorant Garamond', serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            /* Vignette Overlay */
+            box-shadow: inset 0 0 150px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+        
+        canvas {
+            display: block;
+            /* Sepia filter for extra warmth */
+            filter: sepia(0.2) contrast(1.1);
+        }
+
+        /* --- UI LAYER --- */
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #ui-layer * { pointer-events: auto; }
+
+        /* Header */
+        h1 {
+            font-family: var(--font-title);
+            font-size: 1.4rem;
+            color: var(--text-color);
+            letter-spacing: 0.15em;
+            margin: 0;
+            opacity: 0.8;
+            border-bottom: 1px solid rgba(138, 126, 104, 0.2);
+            display: inline-block;
+            padding-bottom: 10px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
+        }
+
+        .tag {
+            font-family: var(--font-body);
+            font-style: italic;
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        /* Footer Controls */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid rgba(138, 126, 104, 0.3);
+            color: var(--text-color);
+            font-family: var(--font-title);
+            font-size: 0.7rem;
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+        
+        .archive-btn {
+            margin-left: auto; /* Push to right */
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(5, 3, 2, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal.visible { display: flex; }
+
+        .modal-content {
+            border: 1px solid var(--accent-color);
+            padding: 60px;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            background: rgba(15, 11, 8, 0.95);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        /* Decorative corners */
+        .modal-content::before {
+            content: ''; position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px;
+            border: 1px solid rgba(138, 126, 104, 0.2);
+            pointer-events: none;
+        }
+
+        .modal-content h2 {
+            font-family: var(--font-title);
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            letter-spacing: 0.1em;
+        }
+
+        .modal-content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin-bottom: 30px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-family: var(--font-title);
+            cursor: pointer;
+            font-size: 0.8rem;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s;
+        }
+        .modal-close:hover {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+    <canvas id="vellichorCanvas"></canvas>
+
+    <div id="ui-layer">
+        <div>
+            <h1>vellichor.im</h1>
+            <div class="tag">The quiet after the crash.</div>
+        </div>
+
+        <div class="controls">
+            <button id="windBtn">Stir Air</button>
+            <button id="aboutBtn">Manifest</button>
+            <button id="archiveBtn" class="archive-btn">Capture Artifact</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="about-modal" class="modal">
+        <div class="modal-content">
+            <h2>Archive Protocol</h2>
+            <p>Data does not disappear. It settles. <br>
+            <strong>Vellichor</strong> simulates the entropy of information. Millions of fragments suspended in a digital solution, drifting slowly into oblivion.</p>
+            <p>Your movement disturbs the dust, briefly illuminating the past before it settles again.</p>
+            <button class="modal-close" id="close-btn">[ CLOSE ]</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * VELLICHOR.IM
+         * Simulation: Fluid Dynamics / Brownian Motion
+         * Concept: Dust motes in a sunbeam / Old paper
+         */
+
+        const canvas = document.getElementById('vellichorCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Modal Logic
+        const modal = document.getElementById('about-modal');
+        const aboutBtn = document.getElementById('aboutBtn');
+        const closeBtn = document.getElementById('close-btn');
+        const windBtn = document.getElementById('windBtn');
+        const archiveBtn = document.getElementById('archiveBtn');
+
+        aboutBtn.addEventListener('click', () => modal.classList.add('visible'));
+        closeBtn.addEventListener('click', () => modal.classList.remove('visible'));
+        modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('visible')});
+
+        // Canvas Setup
+        let width, height;
+        let particles = [];
+        
+        // Config
+        const PARTICLE_COUNT = 4000;
+        // Colors: Gold, Dust, Ink
+        const COLORS = [
+            'rgba(212, 175, 55, ',  // Gold
+            'rgba(138, 126, 104, ', // Dust
+            'rgba(200, 190, 170, ', // Parchment light
+        ];
+
+        let mouse = { x: -1000, y: -1000, vx: 0, vy: 0 };
+        let lastMouse = { x: -1000, y: -1000 };
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            initParticles();
+        }
+        window.addEventListener('resize', resize);
+
+        window.addEventListener('mousemove', (e) => {
+            lastMouse.x = mouse.x;
+            lastMouse.y = mouse.y;
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            mouse.vx = mouse.x - lastMouse.x;
+            mouse.vy = mouse.y - lastMouse.y;
+        });
+
+        // Create a "Wind" effect
+        windBtn.addEventListener('click', () => {
+            particles.forEach(p => {
+                p.vx += (Math.random() - 0.5) * 10;
+                p.vy += (Math.random() - 0.5) * 10;
+            });
+        });
+
+        class DustMote {
+            constructor() {
+                this.reset(true);
+            }
+
+            reset(randomY = false) {
+                this.x = Math.random() * width;
+                this.y = randomY ? Math.random() * height : height + 10;
+                
+                // Base movement (Brownian drift)
+                this.baseVx = (Math.random() - 0.5) * 0.5;
+                this.baseVy = (Math.random() - 0.5) * 0.5 - 0.2; // Slight upward drift
+                
+                this.vx = this.baseVx;
+                this.vy = this.baseVy;
+                
+                this.size = Math.random() * 2 + 0.5;
+                this.friction = 0.96; // Air resistance
+                
+                // Visuals
+                this.colorBase = COLORS[Math.floor(Math.random() * COLORS.length)];
+                this.alpha = Math.random() * 0.5 + 0.1;
+                this.shimmerSpeed = Math.random() * 0.05;
+                this.shimmerPhase = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                // Apply forces
+                // 1. Mouse repulsion/drag (Fluid-ish feel)
+                const dx = this.x - mouse.x;
+                const dy = this.y - mouse.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                // Interaction radius
+                if (dist < 250) {
+                    const force = (250 - dist) / 250;
+                    // Drag adjacent particles with mouse velocity
+                    this.vx += mouse.vx * force * 0.05;
+                    this.vy += mouse.vy * force * 0.05;
+                    
+                    // Slight repulsion to clear a path
+                    this.vx += (dx / dist) * force * 0.5;
+                    this.vy += (dy / dist) * force * 0.5;
+                }
+
+                // 2. Return to natural drift
+                this.vx += (this.baseVx - this.vx) * 0.02;
+                this.vy += (this.baseVy - this.vy) * 0.02;
+
+                // Physics
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Edges - Wrap around
+                if (this.x < -50) this.x = width + 50;
+                if (this.x > width + 50) this.x = -50;
+                if (this.y < -50) this.y = height + 50;
+                if (this.y > height + 50) this.y = -50;
+
+                // Shimmer
+                this.shimmerPhase += this.shimmerSpeed;
+            }
+
+            draw(ctx) {
+                // Calculate opacity based on shimmer
+                const shimmerVal = Math.sin(this.shimmerPhase) * 0.3 + 0.7;
+                const finalAlpha = this.alpha * shimmerVal;
+                
+                ctx.fillStyle = this.colorBase + finalAlpha + ')';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                particles.push(new DustMote());
+            }
+        }
+
+        function animate() {
+            // Clear with drag for trails? No, dust should be crisp but background deep.
+            // We redraw background to fully clear.
+            
+            // Draw Gradient Background manually to ensure it covers
+            const grad = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width);
+            grad.addColorStop(0, '#1a1410'); // Warm dark center
+            grad.addColorStop(1, '#050302'); // Pitch black edges
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+
+            // Render Particles
+            particles.forEach(p => {
+                p.update();
+                p.draw(ctx);
+            });
+
+            // Deceleration of mouse influence
+            mouse.vx *= 0.9;
+            mouse.vy *= 0.9;
+
+            requestAnimationFrame(animate);
+        }
+
+        // --- NEW EXPORT LOGIC (Virtual DOM / Quine) ---
+        archiveBtn.addEventListener('click', () => {
+            // 1. Clone the DOM
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(document.documentElement.outerHTML, 'text/html');
+            
+            // 2. Remove Intro Modal (so archive starts clean)
+            // Actually, for Vellichor, maybe we want the intro? 
+            // No, let's remove it for the "Artifact" feel.
+            // Or better: Hide it by default in the clone.
+            const intro = doc.getElementById('about-modal');
+            if(intro) intro.classList.remove('visible');
+
+            // 3. Inject Auto-Start Script
+            const script = doc.createElement('script');
+            script.textContent = `
+                window.addEventListener('DOMContentLoaded', () => {
+                    console.log("Artifact Thawed.");
+                    // Any specific restore logic goes here
+                });
+            `;
+            doc.body.appendChild(script);
+
+            const blob = new Blob([doc.documentElement.outerHTML], {type: 'text/html'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'vellichor-artifact.html';
+            link.click();
+        });
+
+        // Start
+        resize();
+        animate();
+
+    </script>
+</body>
+</html>

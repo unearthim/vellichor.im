@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vellichor.im | The Scent of Old Books</title>
+    <meta name="description" content="Vellichor: A digital atmosphere capturing the wistfulness of used bookstores. Ink, dust, and time.">
+    
+    <!-- Fonts: Crimson Text (Old Style) & Courier Prime (Typewriter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Palette: "Old Library" */
+            --bg-dark: #1a120b;
+            --bg-light: #2e2015;
+            
+            --ink-fresh: #1a1a1a;
+            --ink-dry: #4a3b2a;
+            
+            --paper-accent: #d6c6b2;
+            --gold-highlight: #cda45e;
+            
+            --font-body: 'Crimson Text', serif;
+            --font-type: 'Courier Prime', monospace;
+            
+            --panel-bg: rgba(30, 25, 20, 0.85);
+            --panel-border: rgba(205, 164, 94, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--paper-accent);
+            font-family: var(--font-body);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            /* Sunbeam Gradient */
+            background: radial-gradient(circle at 50% 30%, #3d2e22 0%, #0f0a06 80%);
+        }
+
+        /* Paper Grain Texture */
+        .texture-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 2;
+            mix-blend-mode: overlay;
+        }
+
+        /* --- UI LAYOUT --- */
+        .ui-layer {
+            position: fixed; z-index: 10;
+            width: 100%; height: 100%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .ui-layer * { pointer-events: auto; }
+
+        /* Top Bar */
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-top: 1px solid var(--panel-border);
+            padding-top: 20px;
+        }
+
+        h1 {
+            font-family: var(--font-body);
+            font-size: 2.5rem;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            font-style: italic;
+            color: var(--gold-highlight);
+            margin: 0;
+            text-shadow: 0 0 20px rgba(205, 164, 94, 0.2);
+        }
+        .tagline {
+            font-family: var(--font-type);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--paper-accent);
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        /* Input Area (Center Bottom) */
+        .input-stage {
+            position: absolute;
+            bottom: 120px; left: 50%;
+            transform: translateX(-50%);
+            width: 100%; max-width: 600px;
+            text-align: center;
+        }
+
+        .typewriter-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(205, 164, 94, 0.2);
+            font-family: var(--font-type);
+            font-size: 1.5rem;
+            color: var(--paper-accent);
+            text-align: center;
+            width: 100%;
+            padding: 15px;
+            outline: none;
+            transition: border-color 0.5s;
+        }
+        .typewriter-input:focus {
+            border-bottom-color: var(--gold-highlight);
+        }
+        .typewriter-input::placeholder {
+            color: var(--paper-accent);
+            opacity: 0.3;
+            font-style: italic;
+            font-family: var(--font-body);
+        }
+
+        /* Controls (Bottom Right) */
+        .controls-area {
+            position: absolute;
+            bottom: 40px; right: 40px;
+            display: flex; gap: 15px;
+        }
+
+        .btn-text {
+            background: transparent;
+            border: none;
+            color: var(--paper-accent);
+            font-family: var(--font-type);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            cursor: pointer;
+            padding: 8px 0;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s;
+            opacity: 0.7;
+        }
+        .btn-text:hover {
+            color: var(--gold-highlight);
+            border-bottom-color: var(--gold-highlight);
+            opacity: 1;
+        }
+
+        /* Stats (Top Right) */
+        .stats-card {
+            text-align: right;
+            font-family: var(--font-type);
+            font-size: 0.7rem;
+            color: var(--paper-accent);
+            opacity: 0.7;
+            line-height: 1.8;
+        }
+        .stat-num { color: var(--gold-highlight); }
+
+        /* Footer Mark */
+        .footer-mark {
+            position: absolute;
+            bottom: 40px; left: 40px;
+            font-family: var(--font-type);
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            opacity: 0.4;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 5, 2, 0.95);
+            z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease;
+        }
+        .modal-overlay.hidden { opacity: 0; pointer-events: none; }
+
+        .modal-card {
+            max-width: 500px;
+            text-align: center;
+            padding: 40px;
+            border: 1px solid var(--panel-border);
+            background: radial-gradient(circle, #2e2015 0%, #0f0a06 100%);
+            box-shadow: 0 0 60px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        /* Elegant borders */
+        .modal-card::before {
+            content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border: 1px solid rgba(205, 164, 94, 0.1);
+            pointer-events: none;
+        }
+
+        .modal-card h2 {
+            font-family: var(--font-body);
+            font-size: 2.5rem;
+            font-style: italic;
+            color: var(--gold-highlight);
+            margin-bottom: 20px;
+        }
+        .modal-card p {
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #a89f91;
+            margin-bottom: 40px;
+        }
+        
+        .btn-enter {
+            background: transparent;
+            border: 1px solid var(--gold-highlight);
+            color: var(--gold-highlight);
+            padding: 12px 40px;
+            font-family: var(--font-type);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            transition: all 0.4s;
+        }
+        .btn-enter:hover {
+            background: rgba(205, 164, 94, 0.1);
+            box-shadow: 0 0 20px rgba(205, 164, 94, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .ui-layer { padding: 20px; }
+            .stats-card { display: none; }
+            .controls-area { 
+                position: relative; bottom: auto; right: auto;
+                justify-content: center; margin-top: 20px;
+            }
+            .ui-layer { justify-content: flex-start; gap: 20px; }
+            .input-stage { position: relative; bottom: auto; left: auto; transform: none; margin-top: auto; }
+            .footer-mark { position: relative; bottom: auto; left: auto; text-align: center; margin-top: 20px;}
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container">
+        <canvas id="vellichorCanvas"></canvas>
+    </div>
+    <div class="texture-overlay"></div>
+
+    <!-- UI -->
+    <div class="ui-layer" id="mainUI" style="opacity: 0; transition: opacity 1.5s;">
+        
+        <div class="header-area">
+            <div>
+                <h1>vellichor</h1>
+                <div class="tagline">The Scent of Old Books</div>
+            </div>
+            <div class="stats-card">
+                <div>PARTICLES: <span class="stat-num" id="count-val">0</span></div>
+                <div>ATMOSPHERE: <span class="stat-num">HEAVY</span></div>
+            </div>
+        </div>
+
+        <div class="input-stage">
+            <input type="text" class="typewriter-input" id="textInput" placeholder="type to stir the dust..." autocomplete="off">
+        </div>
+
+        <div class="controls-area">
+            <button class="btn-text" id="windBtn">Stir Air</button>
+            <button class="btn-text" id="clearBtn">Clear</button>
+            <button class="btn-text" id="saveBtn">Archive</button>
+        </div>
+        
+        <div class="footer-mark">UNEARTH.IM // ARTIFACT 08</div>
+
+    </div>
+
+    <!-- Intro -->
+    <div class="modal-overlay" id="introModal">
+        <div class="modal-card">
+            <h2>Vellichor</h2>
+            <p>The strange wistfulness of used bookstores.<br>
+            Millions of words suspended in time.<br><br>
+            Type to release fresh ink into the air. <br>
+            Watch it dry, drift, and settle into history.</p>
+            <button class="btn-enter" onclick="initSystem()">Open Book</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * VELLICHOR REIMAGINED
+         * Theme: Ink, Dust, Sunbeams, Nostalgia.
+         */
+
+        const canvas = document.getElementById('vellichorCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+        
+        // State
+        let mouse = { x: -1000, y: -1000, vx: 0, vy: 0 };
+        let lastMouse = { x: -1000, y: -1000 };
+        
+        // DOM
+        const ui = {
+            count: document.getElementById('count-val'),
+            input: document.getElementById('textInput')
+        };
+
+        // Palette: Ink to Dust
+        const PALETTE = {
+            fresh: 'rgba(20, 15, 10, ',   // Deep Ink
+            gold: 'rgba(205, 164, 94, ',  // Gold Dust
+            dust: 'rgba(180, 160, 140, '  // Paper Dust
+        };
+
+        class Mote {
+            constructor(startX, startY, isInk = false) {
+                if (isInk) {
+                    // ERUPTION (Typing)
+                    this.x = startX + (Math.random() - 0.5) * 40;
+                    this.y = startY;
+                    this.vx = (Math.random() - 0.5) * 4;
+                    this.vy = -(Math.random() * 3 + 2); // Float Up
+                    this.size = Math.random() * 3 + 1; // Heavier
+                    this.type = 'ink';
+                    this.age = 0;
+                    this.life = 1.0;
+                } else {
+                    // AMBIENT (Dust)
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.2;
+                    this.vy = (Math.random() - 0.5) * 0.2;
+                    this.size = Math.random() * 2 + 0.5; // Lighter
+                    this.type = 'dust';
+                    this.age = Math.random() * 100;
+                    this.life = Math.random() * 0.5 + 0.2;
+                }
+                
+                this.friction = 0.96;
+                this.swayOffset = Math.random() * 100;
+            }
+
+            update() {
+                // Mouse Interaction (Fluid-like displacement)
+                const dx = this.x - mouse.x;
+                const dy = this.y - mouse.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist < 200) {
+                    const force = (200 - dist) / 200;
+                    this.vx += dx * 0.0005 * force;
+                    this.vy += dy * 0.0005 * force;
+                    
+                    // Drag
+                    this.vx += mouse.vx * 0.05 * force;
+                    this.vy += mouse.vy * 0.05 * force;
+                }
+
+                // Physics
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+
+                // Nature
+                if (this.type === 'ink') {
+                    // Ink dries into gold dust
+                    this.age++;
+                    if (this.age > 100) this.type = 'gold'; 
+                    // Gravity for heavy ink
+                    this.vy += 0.02;
+                } else {
+                    // Brownian motion for dust
+                    this.vx += (Math.random() - 0.5) * 0.02;
+                    this.vy += (Math.random() - 0.5) * 0.02 - 0.005; // Slight rise (heat)
+                }
+
+                // Wrap
+                if (this.x > width + 20) this.x = -20;
+                if (this.x < -20) this.x = width + 20;
+                if (this.y > height + 20) this.y = -20;
+                if (this.y < -20) this.y = height + 20;
+            }
+
+            draw(ctx) {
+                let colorStr, alpha;
+                
+                if (this.type === 'ink') {
+                    colorStr = PALETTE.fresh;
+                    alpha = this.life;
+                } else if (this.type === 'gold') {
+                    colorStr = PALETTE.gold;
+                    alpha = 0.6 + Math.sin(this.age * 0.1) * 0.2; // Twinkle
+                } else {
+                    colorStr = PALETTE.dust;
+                    alpha = 0.3 + Math.sin(this.age * 0.05) * 0.1;
+                }
+
+                ctx.beginPath();
+                // Soft circular particles
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2);
+                gradient.addColorStop(0, colorStr + alpha + ')');
+                gradient.addColorStop(1, colorStr + '0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // --- SYSTEM ---
+
+        function init() {
+            resize();
+            // Pre-seed dust
+            for(let i=0; i<1500; i++) {
+                particles.push(new Mote(0, 0, false));
+            }
+            loop();
+            updateStats();
+        }
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        function loop() {
+            // No clearRect -> Use heavy fade for "trailing" atmosphere
+            // Actually, for dust we want crisp movement but soft blending
+            ctx.clearRect(0, 0, width, height);
+            
+            // We can't do true clearing because we want the gradient background to show
+            // The background is CSS, so clearRect works fine.
+
+            particles.forEach(p => {
+                p.update();
+                p.draw(ctx);
+            });
+            
+            // Decay mouse velocity
+            mouse.vx *= 0.9;
+            mouse.vy *= 0.9;
+            
+            requestAnimationFrame(loop);
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', e => {
+            mouse.vx = e.clientX - mouse.x;
+            mouse.vy = e.clientY - mouse.y;
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        // --- CONTROLS ---
+
+        window.initSystem = () => {
+            document.getElementById('introModal').classList.add('hidden');
+            document.getElementById('mainUI').style.opacity = 1;
+            ui.input.focus();
+            init();
+        };
+
+        ui.input.addEventListener('input', (e) => {
+            // Spawn Ink Cloud
+            const rect = ui.input.getBoundingClientRect();
+            const spawnX = rect.left + (rect.width/2);
+            const spawnY = rect.top;
+
+            // BURST
+            for(let i=0; i<15; i++) {
+                particles.push(new Mote(spawnX, spawnY, true));
+            }
+            
+            // Cull old
+            if(particles.length > 3000) particles.splice(0, 15);
+            
+            updateStats();
+        });
+
+        document.getElementById('windBtn').addEventListener('click', () => {
+            particles.forEach(p => {
+                p.vx += (Math.random() - 0.5) * 10;
+                p.vy += (Math.random() - 0.5) * 10;
+            });
+        });
+        
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            particles = [];
+            // Re-seed dust
+             for(let i=0; i<1000; i++) particles.push(new Mote(0, 0, false));
+             ui.input.value = "";
+             updateStats();
+        });
+
+        function updateStats() {
+            ui.count.innerText = particles.length;
+        }
+
+        // --- EXPORT (CRYOSTASIS) ---
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(document.documentElement.outerHTML, 'text/html');
+            
+            // Bake Data
+            const dataScript = doc.createElement('script');
+            dataScript.id = 'cryo-core';
+            dataScript.type = 'application/json';
+            dataScript.textContent = JSON.stringify({
+                text: ui.input.value,
+                // We don't save all particles to save file size, just text + count hint
+                count: particles.length
+            });
+            doc.body.appendChild(dataScript);
+
+            // UI Clean
+            const intro = doc.getElementById('introModal');
+            if(intro) intro.remove();
+            const mainUI = doc.getElementById('mainUI');
+            if(mainUI) mainUI.style.opacity = 1;
+
+            // Loader
+            const loader = doc.createElement('script');
+            loader.textContent = `
+                window.addEventListener('load', () => {
+                    const core = document.getElementById('cryo-core');
+                    if(core) {
+                        const data = JSON.parse(core.textContent);
+                        document.getElementById('textInput').value = data.text;
+                        // Start fresh sim but maybe with extra dust if count was high
+                    }
+                });
+            `;
+            doc.body.appendChild(loader);
+
+            const blob = new Blob([doc.documentElement.outerHTML], {type: 'text/html'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'vellichor-artifact.html';
+            link.click();
+        });
+
+    </script>
+</body>
+</html>
