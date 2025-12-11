@@ -1,36 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>vellichor.im | The Scent of Old Books</title>
-    <meta name="description" content="Vellichor: A digital atmosphere capturing the wistfulness of used bookstores. Ink, dust, and time.">
-    
+    <meta name="description"
+        content="Vellichor: An interactive digital atmosphere by Unearth Heritage Foundry capturing the wistfulness of used bookstores. Ink, dust, and time.">
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "VisualArtwork",
+          "@id": "https://vellichor.im/#content",
+          "url": "https://vellichor.im",
+          "name": "vellichor.im | The Scent of Old Books",
+          "description": "An interactive digital atmosphere capturing the strange wistfulness of used bookstores. Type to release fresh ink into the air, watch it dry, drift, and settle into history. Millions of words suspended in time.",
+          "artMedium": "Interactive Digital Atmosphere",
+          "artForm": "Digital Interactive Monument",
+          "inLanguage": "en-US",
+          "datePublished": "2025-01-01",
+          "publisher": { "@id": "https://unearth.im/#organization" },
+          "isPartOf": { "@id": "https://vellichor.im/#website" },
+          "author": [
+            { "@id": "https://josiest.com/#person" },
+            { "@id": "https://felixvelas.co/#person" }
+          ],
+          "keywords": "vellichor, bookstore, nostalgia, interactive art, digital monument, ink particles, literary art, Unearth Heritage Foundry"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://vellichor.im/#website",
+          "url": "https://vellichor.im",
+          "name": "vellichor.im",
+          "publisher": { "@id": "https://unearth.im/#organization" }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://unearth.im/#organization",
+          "name": "Unearth Heritage Foundry",
+          "alternateName": ["Unearth Foundry","Archive & Anvil","Unearth Anvil","Unearth Works","Cultural Infrastructure Foundry"],
+          "url": "https://unearth.im",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://unearth.im/favicon-32x32.png"
+          },
+          "foundingDate": "2024",
+          "sameAs": [
+            "https://unearth.im",
+            "https://unearth.ink",
+            "https://unearth.wiki",
+            "https://unearth.works",
+            "https://unearth.fyi",
+            "https://twitter.com/unearthim",
+            "https://github.com/unearthim"
+          ]
+        },
+        {
+          "@type": "Person",
+          "@id": "https://josiest.com/#person",
+          "name": "Josie Jefferson",
+          "url": "https://josiest.com",
+          "jobTitle": "Digital Archaeologist & Trust Architect",
+          "affiliation": { "@id": "https://unearth.im/#organization" },
+          "sameAs": ["https://notjojo.im"]
+        },
+        {
+          "@type": "Person",
+          "@id": "https://felixvelas.co/#person",
+          "name": "Felix Velasco",
+          "url": "https://felixvelas.co",
+          "jobTitle": "Trust Architect & Digital Archaeologist",
+          "affiliation": { "@id": "https://unearth.im/#organization" },
+          "sameAs": ["https://www.linkedin.com/in/felix-velasco-b793015"]
+        }
+      ]
+    }
+    </script>
+
+
     <!-- Fonts: Crimson Text (Old Style) & Courier Prime (Typewriter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
 
     <style>
         :root {
             /* Palette: "Old Library" */
             --bg-dark: #1a120b;
             --bg-light: #2e2015;
-            
+
             --ink-fresh: #1a1a1a;
             --ink-dry: #4a3b2a;
-            
+
             --paper-accent: #d6c6b2;
             --gold-highlight: #cda45e;
-            
+
             --font-body: 'Crimson Text', serif;
             --font-type: 'Courier Prime', monospace;
-            
+
             --panel-bg: rgba(30, 25, 20, 0.85);
             --panel-border: rgba(205, 164, 94, 0.3);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             background-color: var(--bg-dark);
@@ -43,8 +125,10 @@
 
         #canvas-container {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 1;
             /* Sunbeam Gradient */
             background: radial-gradient(circle at 50% 30%, #3d2e22 0%, #0f0a06 80%);
@@ -52,24 +136,34 @@
 
         /* Paper Grain Texture */
         .texture-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             opacity: 0.08;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            pointer-events: none; z-index: 2;
+            pointer-events: none;
+            z-index: 2;
             mix-blend-mode: overlay;
         }
 
         /* --- UI LAYOUT --- */
         .ui-layer {
-            position: fixed; z-index: 10;
-            width: 100%; height: 100%;
+            position: fixed;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
             padding: 40px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             pointer-events: none;
         }
-        .ui-layer * { pointer-events: auto; }
+
+        .ui-layer * {
+            pointer-events: auto;
+        }
 
         /* Top Bar */
         .header-area {
@@ -90,6 +184,7 @@
             margin: 0;
             text-shadow: 0 0 20px rgba(205, 164, 94, 0.2);
         }
+
         .tagline {
             font-family: var(--font-type);
             font-size: 0.7rem;
@@ -103,9 +198,11 @@
         /* Input Area (Center Bottom) */
         .input-stage {
             position: absolute;
-            bottom: 120px; left: 50%;
+            bottom: 120px;
+            left: 50%;
             transform: translateX(-50%);
-            width: 100%; max-width: 600px;
+            width: 100%;
+            max-width: 600px;
             text-align: center;
         }
 
@@ -122,9 +219,11 @@
             outline: none;
             transition: border-color 0.5s;
         }
+
         .typewriter-input:focus {
             border-bottom-color: var(--gold-highlight);
         }
+
         .typewriter-input::placeholder {
             color: var(--paper-accent);
             opacity: 0.3;
@@ -135,8 +234,10 @@
         /* Controls (Bottom Right) */
         .controls-area {
             position: absolute;
-            bottom: 40px; right: 40px;
-            display: flex; gap: 15px;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            gap: 15px;
         }
 
         .btn-text {
@@ -153,6 +254,7 @@
             transition: all 0.3s;
             opacity: 0.7;
         }
+
         .btn-text:hover {
             color: var(--gold-highlight);
             border-bottom-color: var(--gold-highlight);
@@ -168,12 +270,16 @@
             opacity: 0.7;
             line-height: 1.8;
         }
-        .stat-num { color: var(--gold-highlight); }
+
+        .stat-num {
+            color: var(--gold-highlight);
+        }
 
         /* Footer Mark */
         .footer-mark {
             position: absolute;
-            bottom: 40px; left: 40px;
+            bottom: 40px;
+            left: 40px;
             font-family: var(--font-type);
             font-size: 0.6rem;
             letter-spacing: 0.2em;
@@ -182,13 +288,23 @@
 
         /* Modal */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(10, 5, 2, 0.95);
             z-index: 100;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: opacity 0.8s ease;
         }
-        .modal-overlay.hidden { opacity: 0; pointer-events: none; }
+
+        .modal-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
 
         .modal-card {
             max-width: 500px;
@@ -196,12 +312,18 @@
             padding: 40px;
             border: 1px solid var(--panel-border);
             background: radial-gradient(circle, #2e2015 0%, #0f0a06 100%);
-            box-shadow: 0 0 60px rgba(0,0,0,0.8);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
             position: relative;
         }
+
         /* Elegant borders */
         .modal-card::before {
-            content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px;
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
             border: 1px solid rgba(205, 164, 94, 0.1);
             pointer-events: none;
         }
@@ -213,6 +335,7 @@
             color: var(--gold-highlight);
             margin-bottom: 20px;
         }
+
         .modal-card p {
             font-family: var(--font-body);
             font-size: 1.1rem;
@@ -220,7 +343,7 @@
             color: #a89f91;
             margin-bottom: 40px;
         }
-        
+
         .btn-enter {
             background: transparent;
             border: 1px solid var(--gold-highlight);
@@ -233,25 +356,53 @@
             cursor: pointer;
             transition: all 0.4s;
         }
+
         .btn-enter:hover {
             background: rgba(205, 164, 94, 0.1);
             box-shadow: 0 0 20px rgba(205, 164, 94, 0.2);
         }
-        
-        @media (max-width: 768px) {
-            .ui-layer { padding: 20px; }
-            .stats-card { display: none; }
-            .controls-area { 
-                position: relative; bottom: auto; right: auto;
-                justify-content: center; margin-top: 20px;
-            }
-            .ui-layer { justify-content: flex-start; gap: 20px; }
-            .input-stage { position: relative; bottom: auto; left: auto; transform: none; margin-top: auto; }
-            .footer-mark { position: relative; bottom: auto; left: auto; text-align: center; margin-top: 20px;}
-        }
 
+        @media (max-width: 768px) {
+            .ui-layer {
+                padding: 20px;
+            }
+
+            .stats-card {
+                display: none;
+            }
+
+            .controls-area {
+                position: relative;
+                bottom: auto;
+                right: auto;
+                justify-content: center;
+                margin-top: 20px;
+            }
+
+            .ui-layer {
+                justify-content: flex-start;
+                gap: 20px;
+            }
+
+            .input-stage {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                transform: none;
+                margin-top: auto;
+            }
+
+            .footer-mark {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                text-align: center;
+                margin-top: 20px;
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <div id="canvas-container">
@@ -261,7 +412,7 @@
 
     <!-- UI -->
     <div class="ui-layer" id="mainUI" style="opacity: 0; transition: opacity 1.5s;">
-        
+
         <div class="header-area">
             <div>
                 <h1>vellichor</h1>
@@ -274,7 +425,8 @@
         </div>
 
         <div class="input-stage">
-            <input type="text" class="typewriter-input" id="textInput" placeholder="type to stir the dust..." autocomplete="off">
+            <input type="text" class="typewriter-input" id="textInput" placeholder="type to stir the dust..."
+                autocomplete="off">
         </div>
 
         <div class="controls-area">
@@ -282,7 +434,7 @@
             <button class="btn-text" id="clearBtn">Clear</button>
             <button class="btn-text" id="saveBtn">Archive</button>
         </div>
-        
+
         <div class="footer-mark">UNEARTH.IM // ARTIFACT 08</div>
 
     </div>
@@ -292,9 +444,9 @@
         <div class="modal-card">
             <h2>Vellichor</h2>
             <p>The strange wistfulness of used bookstores.<br>
-            Millions of words suspended in time.<br><br>
-            Type to release fresh ink into the air. <br>
-            Watch it dry, drift, and settle into history.</p>
+                Millions of words suspended in time.<br><br>
+                Type to release fresh ink into the air. <br>
+                Watch it dry, drift, and settle into history.</p>
             <button class="btn-enter" onclick="initSystem()">Open Book</button>
         </div>
     </div>
@@ -307,14 +459,14 @@
 
         const canvas = document.getElementById('vellichorCanvas');
         const ctx = canvas.getContext('2d');
-        
+
         let width, height;
         let particles = [];
-        
+
         // State
         let mouse = { x: -1000, y: -1000, vx: 0, vy: 0 };
         let lastMouse = { x: -1000, y: -1000 };
-        
+
         // DOM
         const ui = {
             count: document.getElementById('count-val'),
@@ -351,7 +503,7 @@
                     this.age = Math.random() * 100;
                     this.life = Math.random() * 0.5 + 0.2;
                 }
-                
+
                 this.friction = 0.96;
                 this.swayOffset = Math.random() * 100;
             }
@@ -360,13 +512,13 @@
                 // Mouse Interaction (Fluid-like displacement)
                 const dx = this.x - mouse.x;
                 const dy = this.y - mouse.y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
                 if (dist < 200) {
                     const force = (200 - dist) / 200;
                     this.vx += dx * 0.0005 * force;
                     this.vy += dy * 0.0005 * force;
-                    
+
                     // Drag
                     this.vx += mouse.vx * 0.05 * force;
                     this.vy += mouse.vy * 0.05 * force;
@@ -375,7 +527,7 @@
                 // Physics
                 this.x += this.vx;
                 this.y += this.vy;
-                
+
                 this.vx *= this.friction;
                 this.vy *= this.friction;
 
@@ -383,7 +535,7 @@
                 if (this.type === 'ink') {
                     // Ink dries into gold dust
                     this.age++;
-                    if (this.age > 100) this.type = 'gold'; 
+                    if (this.age > 100) this.type = 'gold';
                     // Gravity for heavy ink
                     this.vy += 0.02;
                 } else {
@@ -401,7 +553,7 @@
 
             draw(ctx) {
                 let colorStr, alpha;
-                
+
                 if (this.type === 'ink') {
                     colorStr = PALETTE.fresh;
                     alpha = this.life;
@@ -418,7 +570,7 @@
                 const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2);
                 gradient.addColorStop(0, colorStr + alpha + ')');
                 gradient.addColorStop(1, colorStr + '0)');
-                
+
                 ctx.fillStyle = gradient;
                 ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
                 ctx.fill();
@@ -430,7 +582,7 @@
         function init() {
             resize();
             // Pre-seed dust
-            for(let i=0; i<1500; i++) {
+            for (let i = 0; i < 1500; i++) {
                 particles.push(new Mote(0, 0, false));
             }
             loop();
@@ -448,7 +600,7 @@
             // No clearRect -> Use heavy fade for "trailing" atmosphere
             // Actually, for dust we want crisp movement but soft blending
             ctx.clearRect(0, 0, width, height);
-            
+
             // We can't do true clearing because we want the gradient background to show
             // The background is CSS, so clearRect works fine.
 
@@ -456,11 +608,11 @@
                 p.update();
                 p.draw(ctx);
             });
-            
+
             // Decay mouse velocity
             mouse.vx *= 0.9;
             mouse.vy *= 0.9;
-            
+
             requestAnimationFrame(loop);
         }
 
@@ -484,17 +636,17 @@
         ui.input.addEventListener('input', (e) => {
             // Spawn Ink Cloud
             const rect = ui.input.getBoundingClientRect();
-            const spawnX = rect.left + (rect.width/2);
+            const spawnX = rect.left + (rect.width / 2);
             const spawnY = rect.top;
 
             // BURST
-            for(let i=0; i<15; i++) {
+            for (let i = 0; i < 15; i++) {
                 particles.push(new Mote(spawnX, spawnY, true));
             }
-            
+
             // Cull old
-            if(particles.length > 3000) particles.splice(0, 15);
-            
+            if (particles.length > 3000) particles.splice(0, 15);
+
             updateStats();
         });
 
@@ -504,13 +656,13 @@
                 p.vy += (Math.random() - 0.5) * 10;
             });
         });
-        
+
         document.getElementById('clearBtn').addEventListener('click', () => {
             particles = [];
             // Re-seed dust
-             for(let i=0; i<1000; i++) particles.push(new Mote(0, 0, false));
-             ui.input.value = "";
-             updateStats();
+            for (let i = 0; i < 1000; i++) particles.push(new Mote(0, 0, false));
+            ui.input.value = "";
+            updateStats();
         });
 
         function updateStats() {
@@ -521,7 +673,7 @@
         document.getElementById('saveBtn').addEventListener('click', () => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(document.documentElement.outerHTML, 'text/html');
-            
+
             // Bake Data
             const dataScript = doc.createElement('script');
             dataScript.id = 'cryo-core';
@@ -535,9 +687,9 @@
 
             // UI Clean
             const intro = doc.getElementById('introModal');
-            if(intro) intro.remove();
+            if (intro) intro.remove();
             const mainUI = doc.getElementById('mainUI');
-            if(mainUI) mainUI.style.opacity = 1;
+            if (mainUI) mainUI.style.opacity = 1;
 
             // Loader
             const loader = doc.createElement('script');
@@ -553,7 +705,7 @@
             `;
             doc.body.appendChild(loader);
 
-            const blob = new Blob([doc.documentElement.outerHTML], {type: 'text/html'});
+            const blob = new Blob([doc.documentElement.outerHTML], { type: 'text/html' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = 'vellichor-artifact.html';
@@ -562,4 +714,5 @@
 
     </script>
 </body>
+
 </html>
